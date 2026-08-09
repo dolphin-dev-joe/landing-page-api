@@ -3,8 +3,8 @@ import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { pgTable, bigserial, varchar, text, integer, boolean, timestamp, numeric, bigint, jsonb } from "drizzle-orm/pg-core";
-import { sql, eq } from "drizzle-orm";
+import { pgTable, bigserial, varchar, text, integer, boolean, timestamp, numeric, bigint, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { sql, eq, and, ilike, desc } from "drizzle-orm";
 
 // Database setup
 const connectionString = process.env.DATABASE_URL || "";
@@ -127,6 +127,22 @@ const perfumes = pgTable("perfumes", {
   premium: boolean("premium").notNull().default(false),
   sortOrder: integer("sort_order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+const articleStatusEnum = pgEnum("article_status", ["draft", "published", "archived"]);
+
+const articles = pgTable("articles", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  slug: varchar("slug", { length: 255 }).notNull().unique(),
+  title: varchar("title", { length: 255 }).notNull(),
+  coverImage: varchar("cover_image", { length: 500 }),
+  excerpt: text("excerpt").notNull(),
+  content: text("content").notNull(),
+  status: articleStatusEnum("status").notNull().default("draft"),
+  viewsCount: integer("views_count").notNull().default(0),
+  sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -346,6 +362,58 @@ app.get("/api/settings", async (c) => {
     return c.json({ success: true, data: data[0] || null });
   } catch (error) {
     return c.json({ success: false, error: "Failed to fetch settings" }, 500);
+  }
+});
+
+// Articles list endpoint
+app.get("/api/articles", async (c) => {
+  try {
+    const page = Math.max(1, Number(c.req.query("page") || "1"));
+    const limit = Math.min(50, Math.max(1, Number(c.req.query("limit") || "9")));
+    const q = c.req.query("q");
+    const offset = (page - 1) * limit;
+
+    const where = q
+      ? and(eq(articles.status, "published"), ilike(articles.title, `${q}%`))
+      : eq(articles.status, "published");
+
+    const [items, countResult] = await Promise.all([
+      db.select().from(articles).where(where).orderBy(desc(articles.createdAt)).limit(limit).offset(offset),
+      db.select({ count: sql<number>`count(*)` }).from(articles).where(where),
+    ]);
+
+    return c.json({ success: true, data: { items, total: Number(countResult[0]?.count ?? 0) } });
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+    return c.json({ success: false, error: "Failed to fetch articles" }, 500);
+  }
+});
+
+// Article detail by slug endpoint
+app.get("/api/articles/:slug", async (c) => {
+  try {
+    const slug = c.req.param("slug");
+
+    const [item] = await db
+      .select()
+      .from(articles)
+      .where(and(eq(articles.slug, slug), eq(articles.status, "published")))
+      .limit(1);
+
+    if (!item) {
+      return c.json({ success: false, error: "Article not found" }, 404);
+    }
+
+    // Increment view count (fire-and-forget)
+    db.update(articles)
+      .set({ viewsCount: sql`${articles.viewsCount} + 1` })
+      .where(eq(articles.id, item.id))
+      .catch(() => {});
+
+    return c.json({ success: true, data: item });
+  } catch (error) {
+    console.error("Error fetching article:", error);
+    return c.json({ success: false, error: "Failed to fetch article" }, 500);
   }
 });
 

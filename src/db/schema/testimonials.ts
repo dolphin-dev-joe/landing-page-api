@@ -1,7 +1,8 @@
-import { pgTable, bigserial, varchar, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const testimonials = pgTable("testimonials", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   customerName: varchar("customer_name", { length: 255 }).notNull(),
   customerRole: varchar("customer_role", { length: 255 }),
   content: text("content").notNull(),

@@ -1,7 +1,8 @@
-import { pgTable, bigserial, varchar, text, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const faqs = pgTable("faqs", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   question: varchar("question", { length: 255 }).notNull(),
   questionEn: varchar("question_en", { length: 255 }), // English Question
   answer: text("answer").notNull(),

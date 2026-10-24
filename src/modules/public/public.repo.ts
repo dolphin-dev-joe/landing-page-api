@@ -215,7 +215,7 @@ export class PublicRepository {
     return item ?? null;
   }
 
-  async incrementArticleViews(id: number) {
+  async incrementArticleViews(id: string) {
     await db
       .update(articles)
       .set({ viewsCount: sql`${articles.viewsCount} + 1` })

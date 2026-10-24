@@ -1,7 +1,8 @@
-import { pgTable, bigserial, varchar, integer, boolean, timestamp, bigint } from "drizzle-orm/pg-core";
+import { pgTable, varchar, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const perfumeCategories = pgTable("perfume_categories", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   name: varchar("name", { length: 100 }).notNull(),
   nameEn: varchar("name_en", { length: 100 }), // English Name
   sortOrder: integer("sort_order").notNull().default(0),
@@ -11,8 +12,8 @@ export const perfumeCategories = pgTable("perfume_categories", {
 });
 
 export const perfumes = pgTable("perfumes", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  categoryId: bigint("category_id", { mode: "number" }).notNull().references(() => perfumeCategories.id, { onDelete: "cascade" }),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  categoryId: uuid("category_id").notNull().references(() => perfumeCategories.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 150 }).notNull(),
   nameEn: varchar("name_en", { length: 150 }), // English Name
   popular: boolean("popular").notNull().default(false), // Popular perfume flag

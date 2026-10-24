@@ -3,7 +3,7 @@ import { handle } from "hono/vercel";
 import { cors } from "hono/cors";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
-import { pgTable, bigserial, varchar, text, integer, boolean, timestamp, numeric, bigint, jsonb, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, integer, boolean, timestamp, numeric, jsonb, pgEnum } from "drizzle-orm/pg-core";
 import { sql, eq, and, ilike, desc } from "drizzle-orm";
 
 // Database setup
@@ -16,13 +16,13 @@ const db = drizzle(client);
 
 // Schema definitions
 const siteSettings = pgTable("site_settings", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   config: jsonb("config").notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 const homeSections = pgTable("home_sections", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   sectionKey: varchar("section_key", { length: 50 }).notNull().unique(),
   title: varchar("title", { length: 150 }),
   subtitle: text("subtitle"),
@@ -36,7 +36,7 @@ const homeSections = pgTable("home_sections", {
 });
 
 const testimonials = pgTable("testimonials", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   customerName: varchar("customer_name", { length: 255 }).notNull(),
   customerRole: varchar("customer_role", { length: 255 }),
   content: text("content").notNull(),
@@ -49,7 +49,7 @@ const testimonials = pgTable("testimonials", {
 });
 
 const locations = pgTable("locations", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   name: varchar("name", { length: 255 }).notNull(),
   address: text("address").notNull(),
   city: varchar("city", { length: 100 }).notNull(),
@@ -66,7 +66,7 @@ const locations = pgTable("locations", {
 });
 
 const contacts = pgTable("contacts", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   type: varchar("type", { length: 50 }).notNull(),
   label: varchar("label", { length: 100 }).notNull(),
   value: varchar("value", { length: 255 }).notNull(),
@@ -77,7 +77,7 @@ const contacts = pgTable("contacts", {
 });
 
 const pricingCategories = pgTable("pricing_categories", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   name: varchar("name", { length: 100 }).notNull(),
   nameEn: varchar("name_en", { length: 100 }),
   description: text("description"),
@@ -89,8 +89,8 @@ const pricingCategories = pgTable("pricing_categories", {
 });
 
 const pricingItems = pgTable("pricing_items", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  categoryId: bigint("category_id", { mode: "number" }).notNull().references(() => pricingCategories.id, { onDelete: "cascade" }),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  categoryId: uuid("category_id").notNull().references(() => pricingCategories.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 150 }).notNull(),
   nameEn: varchar("name_en", { length: 150 }),
   price: numeric("price", { precision: 12, scale: 2 }).notNull(),
@@ -107,7 +107,7 @@ const pricingItems = pgTable("pricing_items", {
 });
 
 const perfumeCategories = pgTable("perfume_categories", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   name: varchar("name", { length: 100 }).notNull(),
   nameEn: varchar("name_en", { length: 100 }),
   sortOrder: integer("sort_order").notNull().default(0),
@@ -117,8 +117,8 @@ const perfumeCategories = pgTable("perfume_categories", {
 });
 
 const perfumes = pgTable("perfumes", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  categoryId: bigint("category_id", { mode: "number" }).notNull().references(() => perfumeCategories.id, { onDelete: "cascade" }),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  categoryId: uuid("category_id").notNull().references(() => perfumeCategories.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 150 }).notNull(),
   nameEn: varchar("name_en", { length: 150 }),
   popular: boolean("popular").notNull().default(false),
@@ -134,7 +134,7 @@ const perfumes = pgTable("perfumes", {
 const articleStatusEnum = pgEnum("article_status", ["draft", "published", "archived"]);
 
 const articles = pgTable("articles", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   title: varchar("title", { length: 255 }).notNull(),
   coverImage: varchar("cover_image", { length: 500 }),
@@ -148,7 +148,7 @@ const articles = pgTable("articles", {
 });
 
 const faqs = pgTable("faqs", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   question: varchar("question", { length: 255 }).notNull(),
   questionEn: varchar("question_en", { length: 255 }),
   answer: text("answer").notNull(),

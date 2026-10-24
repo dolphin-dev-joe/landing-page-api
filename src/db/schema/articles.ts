@@ -1,12 +1,13 @@
 import {
   pgTable,
-  bigserial,
+  uuid,
   varchar,
   text,
   integer,
   pgEnum,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const articleStatusEnum = pgEnum("article_status", [
   "draft",
@@ -15,7 +16,7 @@ export const articleStatusEnum = pgEnum("article_status", [
 ]);
 
 export const articles = pgTable("articles", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   title: varchar("title", { length: 255 }).notNull(),
   coverImage: varchar("cover_image", { length: 500 }),

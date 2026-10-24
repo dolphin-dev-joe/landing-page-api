@@ -1,7 +1,8 @@
-import { pgTable, bigserial, varchar, text, boolean, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, boolean, timestamp, integer, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const locations = pgTable("locations", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   name: varchar("name", { length: 255 }).notNull(),
   address: text("address").notNull(),
   city: varchar("city", { length: 100 }).notNull(),

@@ -1,7 +1,8 @@
-import { pgTable, bigserial, varchar, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, integer, boolean, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const contacts = pgTable("contacts", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   type: varchar("type", { length: 50 }).notNull(), // whatsapp, instagram, email, phone, etc.
   label: varchar("label", { length: 100 }).notNull(),
   value: varchar("value", { length: 255 }).notNull(),

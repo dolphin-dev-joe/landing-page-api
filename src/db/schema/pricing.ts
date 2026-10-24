@@ -1,7 +1,8 @@
-import { pgTable, bigserial, varchar, text, integer, boolean, timestamp, numeric, bigint } from "drizzle-orm/pg-core";
+import { pgTable, varchar, text, integer, boolean, timestamp, numeric, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const pricingCategories = pgTable("pricing_categories", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   name: varchar("name", { length: 100 }).notNull(),
   nameEn: varchar("name_en", { length: 100 }), // English Name
   description: text("description"),
@@ -13,8 +14,8 @@ export const pricingCategories = pgTable("pricing_categories", {
 });
 
 export const pricingItems = pgTable("pricing_items", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
-  categoryId: bigint("category_id", { mode: "number" }).notNull().references(() => pricingCategories.id, { onDelete: "cascade" }),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
+  categoryId: uuid("category_id").notNull().references(() => pricingCategories.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 150 }).notNull(),
   nameEn: varchar("name_en", { length: 150 }), // English Name
   price: numeric("price", { precision: 12, scale: 2 }).notNull(),

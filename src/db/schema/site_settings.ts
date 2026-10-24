@@ -1,7 +1,8 @@
-import { pgTable, bigserial, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, jsonb, timestamp, uuid } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const siteSettings = pgTable("site_settings", {
-  id: bigserial("id", { mode: "number" }).primaryKey(),
+  id: uuid("id").primaryKey().default(sql`uuid_generate_v7()`),
   config: jsonb("config").notNull(), // Store all settings as JSON
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
